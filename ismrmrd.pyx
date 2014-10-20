@@ -1,6 +1,9 @@
 cimport cismrmrd
 from libc.stdlib cimport calloc, free
 from libc.string cimport memcpy
+import numpy
+cimport numpy
+numpy.import_array()
 
 #### Helper functions
 
@@ -224,8 +227,11 @@ cdef class Acquisition:
 
     property data:
         def __get__(self):
-            size = cismrmrd.ismrmrd_size_of_acquisition_data(self.this)
-            return None     # FIXME: return NumPy array or Cython Typed MemoryView
+            cdef numpy.npy_intp shape_data[1]
+            shape_data[0] = cismrmrd.ismrmrd_size_of_acquisition_data(self.this) / sizeof(numpy.npy_cfloat)
+            # careful here, this is a R-W view
+            return numpy.PyArray_SimpleNewFromData(1, shape_data,
+                    numpy.NPY_COMPLEX64, <void *>(self.this.data))
 
 cdef class ImageHeader:
     cdef cismrmrd.ISMRMRD_ImageHeader *this
