@@ -233,6 +233,10 @@ cdef class ImageHeader:
         def __get__(self): return self.this.version
         def __set__(self, val): self.this.version = val
 
+    property data_type:
+        def __get__(self): return self.this.data_type
+        def __set__(self, val): self.this.data_type = val
+
     property flags:
         def __get__(self): return self.this.flags
         def __set__(self, val): self.this.flags = val
@@ -334,10 +338,6 @@ cdef class ImageHeader:
         def __set__(self, val):
             for i in range(cismrmrd.ISMRMRD_PHYS_STAMPS):
                 self.this.physiology_time_stamp[i] = val[i]
-
-    property image_data_type:
-        def __get__(self): return self.this.image_data_type
-        def __set__(self, val): self.this.image_data_type = val
 
     property image_type:
         def __get__(self): return self.this.image_type
