@@ -17,6 +17,17 @@ cdef ImageHeader_from_struct(cismrmrd.ISMRMRD_ImageHeader *other):
     memcpy(head.this, other, sizeof(cismrmrd.ISMRMRD_ImageHeader))
     return head
 
+cdef dict ismrmrd_to_numpy_dtypes_dict = {
+    cismrmrd.ISMRMRD_USHORT:    numpy.NPY_UINT16,
+    cismrmrd.ISMRMRD_SHORT:     numpy.NPY_INT16,
+    cismrmrd.ISMRMRD_UINT:      numpy.NPY_UINT32,
+    cismrmrd.ISMRMRD_INT:       numpy.NPY_INT32,
+    cismrmrd.ISMRMRD_FLOAT:     numpy.NPY_FLOAT64,
+    cismrmrd.ISMRMRD_DOUBLE:    numpy.NPY_FLOAT128,
+    cismrmrd.ISMRMRD_CXFLOAT:   numpy.NPY_COMPLEX64,
+    cismrmrd.ISMRMRD_CXDOUBLE:  numpy.NPY_COMPLEX128,
+}
+
 ####
 
 cdef class EncodingCounters:
@@ -401,12 +412,18 @@ cdef class Image:
 
     property head:
         def __get__(self): return ImageHeader_from_struct(&self.this.head)
+        
     property attribute_string:
         def __get__(self): return self.this.attribute_string
+        
     property data:
         def __get__(self):
-            size = cismrmrd.ismrmrd_size_of_image_data(self.this)
-            return None     # FIXME: return NumPy array or Cython Typed MemoryView
+            cdef numpy.npy_intp shape_data[3]
+            for idim in range(3):
+                shape_data[idim] = self.head.matrix_size[idim]            
+            cdef int typenum = ismrmrd_to_numpy_dtypes_dict[self.head.data_type]
+            return numpy.PyArray_SimpleNewFromData(3, shape_data,
+                    typenum, <void *>(self.this.data))
 
 cdef class Dataset:
     cdef cismrmrd.ISMRMRD_Dataset *this
