@@ -227,21 +227,23 @@ cdef class Acquisition:
 
     property data:
         def __get__(self):
-            cdef numpy.npy_intp shape_data[1]
-            shape_data[0] = cismrmrd.ismrmrd_size_of_acquisition_data(self.this) / sizeof(numpy.npy_cfloat)
+            cdef numpy.npy_intp shape_data[2]
+            shape_data[0] = self.head.active_channels
+            shape_data[1] = self.head.number_of_samples
             # careful here, this is a R-W view
-            return numpy.PyArray_SimpleNewFromData(1, shape_data,
+            return numpy.PyArray_SimpleNewFromData(2, shape_data,
                     numpy.NPY_COMPLEX64, <void *>(self.this.data))
 
     property traj:
         def __get__(self):
-            cdef numpy.npy_intp shape_traj[1]
-            shape_traj[0] = cismrmrd.ismrmrd_size_of_acquisition_traj(self.this) / sizeof(numpy.npy_cfloat)
+            cdef numpy.npy_intp shape_traj[2]
+            shape_traj[0] = self.head.number_of_samples
+            shape_traj[1] = self.head.trajectory_dimensions
             # careful here, this is a R-W view
             # if traj ptr is empty, then will return an empty array
             # which is arguably better than returning a NoneType.
-            return numpy.PyArray_SimpleNewFromData(1, shape_traj,
-                    numpy.NPY_COMPLEX64, <void *>(self.this.traj))
+            return numpy.PyArray_SimpleNewFromData(2, shape_traj,
+                    numpy.NPY_FLOAT32, <void *>(self.this.traj))
 
 cdef class ImageHeader:
     cdef cismrmrd.ISMRMRD_ImageHeader *this
