@@ -193,7 +193,9 @@ cdef class AcquisitionHeader:
 
     property idx:
         def __get__(self): return self.idx
-        def __set__(self, val): pass    # FIXME (does nothing)
+        def __set__(self, EncodingCounters val):
+            memcpy(&self.this.idx, val.this,
+                    sizeof(cismrmrd.ISMRMRD_EncodingCounters))            
 
     property user_int:
         def __get__(self):
