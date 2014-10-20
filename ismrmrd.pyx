@@ -217,6 +217,11 @@ cdef class Acquisition:
 
     property head:
         def __get__(self): return AcquisitionHeader_from_struct(&self.this.head)
+        def __set__(self, AcquisitionHeader head):
+            memcpy(&self.this.head, head.this,
+                    sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
+            cismrmrd.ismrmrd_make_consistent_acquisition(self.this)
+
     property data:
         def __get__(self):
             size = cismrmrd.ismrmrd_size_of_acquisition_data(self.this)
