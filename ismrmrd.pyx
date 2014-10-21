@@ -446,3 +446,6 @@ cdef class Dataset:
         cismrmrd.ismrmrd_write_header(self.thisptr, xmlstring)
     def read_header(self):
         return cismrmrd.ismrmrd_read_header(self.thisptr)
+    
+    def append_acquisition(self, Acquisition acq):
+        return cismrmrd.ismrmrd_append_acquisition(self.thisptr, acq.thisptr)
