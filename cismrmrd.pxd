@@ -96,6 +96,7 @@ cdef extern from "ismrmrd/ismrmrd.h":
 
     ctypedef struct ISMRMRD_ImageHeader:
         uint16_t version    # First unsigned int indicates the version
+        uint16_t data_type  # e.g. unsigned short, float, complex float, etc.
         uint64_t flags      # bit field with flags
         uint32_t measurement_uid    # Unique ID for the measurement
         uint16_t matrix_size[3]     # Pixels in the 3 spatial dimensions
@@ -114,7 +115,6 @@ cdef extern from "ismrmrd/ismrmrd.h":
         uint16_t set        # e.g. flow encodning set
         uint32_t acquisition_time_stamp # Acquisition clock
         uint32_t physiology_time_stamp[ISMRMRD_PHYS_STAMPS] # Physiology time stamps, e.g. ecg, breating, etc.
-        uint16_t image_data_type    # e.g. unsigned short, float, complex float, etc.
         uint16_t image_type     # e.g. magnitude, phase, complex, real, imag, etc.
         uint16_t image_index    # e.g. image number in series of images
         uint16_t image_series_index             # e.g. series number
