@@ -527,14 +527,33 @@ cdef class Dataset:
     def append_acquisition(self, Acquisition acq):
         return cismrmrd.ismrmrd_append_acquisition(self.thisptr, acq.thisptr)
 
+    def read_acquisition(self, index):
+        cdef Acquisition acq = Acquisition()
+        cismrmrd.ismrmrd_read_acquisition(self.thisptr, index, acq.thisptr)
+        return acq
+
     @property
     def number_of_acquisitions(self):
         return cismrmrd.ismrmrd_get_number_of_acquisitions(self.thisptr)
-        
-    @property
+
+    def append_image(self, varname, Image img):
+        return cismrmrd.ismrmrd_append_image(self.thisptr, varname, img.thisptr)
+
+    def read_image(self, varname, index):
+        cdef Image img = Image()
+        cismrmrd.ismrmrd_read_image(self.thisptr, varname, index, img.thisptr)
+        return img
+
     def number_of_images(self, varname):
         return cismrmrd.ismrmrd_get_number_of_images(self.thisptr, varname)
-        
-    @property
-    def number_of_arrays(self, varname):
-        return cismrmrd.ismrmrd_get_number_of_arrays(self.thisptr, varname)
+
+#    def append_array(self, varname, Array arr):
+#        return cismrmrd.ismrmrd_append_array(self.thisptr, varname, arr.thisptr)
+
+#    def read_image(self, varname, index):
+#        cdef Array arr = Array()
+#        cismrmrd.ismrmrd_read_array(self.thisptr, varname, index, arr.thisptr)
+#        return img
+
+#    def number_of_arrays(self, varname):
+#        return cismrmrd.ismrmrd_get_number_of_arrays(self.thisptr, varname)
