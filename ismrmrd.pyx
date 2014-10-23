@@ -251,12 +251,14 @@ cdef class Acquisition:
     cdef cismrmrd.ISMRMRD_Acquisition *thisptr
 
     def __cinit__(self, AcquisitionHeader head=None):
-        self.thisptr = <cismrmrd.ISMRMRD_Acquisition*>cismrmrd.ismrmrd_create_acquisition()
+        self.thisptr = <cismrmrd.ISMRMRD_Acquisition*>calloc(1, sizeof(cismrmrd.ISMRMRD_Acquisition))
+        cismrmrd.ismrmrd_init_acquisition(self.thisptr)
         if head is not None:
             self.head = head 
 
     def __dealloc__(self):
-        cismrmrd.ismrmrd_free_acquisition(self.thisptr)
+        cismrmrd.ismrmrd_cleanup_acquisition(self.thisptr)
+        free(self.thisptr)
 
     def __copy__(self):
         cdef Acquisition acopy = Acquisition()
@@ -458,12 +460,14 @@ cdef class Image:
     cdef cismrmrd.ISMRMRD_Image *thisptr
 
     def __cinit__(self, ImageHeader head=None):
-        self.thisptr = <cismrmrd.ISMRMRD_Image*>cismrmrd.ismrmrd_create_image()
+        self.thisptr = <cismrmrd.ISMRMRD_Image*>calloc(1, sizeof(cismrmrd.ISMRMRD_Image))
+        cismrmrd.ismrmrd_init_image(self.thisptr)
         if head is not None:
             self.head = head
 
     def __dealloc__(self):
-        cismrmrd.ismrmrd_free_image(self.thisptr)
+        cismrmrd.ismrmrd_cleanup_image(self.thisptr)
+        free(self.thisptr)
 
     def __copy__(self):
         cdef Image acopy = Image()
