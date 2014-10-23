@@ -526,3 +526,15 @@ cdef class Dataset:
 
     def append_acquisition(self, Acquisition acq):
         return cismrmrd.ismrmrd_append_acquisition(self.thisptr, acq.thisptr)
+
+    @property
+    def number_of_acquisitions(self):
+        return cismrmrd.ismrmrd_get_number_of_acquisitions(self.thisptr)
+        
+    @property
+    def number_of_images(self, varname):
+        return cismrmrd.ismrmrd_get_number_of_images(self.thisptr, varname)
+        
+    @property
+    def number_of_arrays(self, varname):
+        return cismrmrd.ismrmrd_get_number_of_arrays(self.thisptr, varname)
