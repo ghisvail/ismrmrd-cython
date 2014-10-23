@@ -598,14 +598,3 @@ cdef class Dataset:
 
     def number_of_images(self, varname):
         return cismrmrd.ismrmrd_get_number_of_images(self.thisptr, varname)
-
-#    def append_array(self, varname, Array arr):
-#        return cismrmrd.ismrmrd_append_array(self.thisptr, varname, arr.thisptr)
-
-#    def read_image(self, varname, index):
-#        cdef Array arr = Array()
-#        cismrmrd.ismrmrd_read_array(self.thisptr, varname, index, arr.thisptr)
-#        return img
-
-#    def number_of_arrays(self, varname):
-#        return cismrmrd.ismrmrd_get_number_of_arrays(self.thisptr, varname)
