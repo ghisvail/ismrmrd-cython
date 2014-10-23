@@ -253,3 +253,25 @@ cdef class ISMRMRDAcquisition:
             # which is arguably better than returning a NoneType.
             return numpy.PyArray_SimpleNewFromData(2, shape_traj,
                     numpy.NPY_FLOAT32, <void *>(self.thisptr.getTraj()))
+
+
+cdef class ISMRMRDImageHeader:
+    
+    cdef cppismrmrd.ImageHeader *thisptr
+    
+    def __cinit__(self):
+        self.thisptr = new cppismrmrd.ImageHeader()
+        
+    def __dealloc__(self):
+        del self.thisptr
+
+
+cdef class ISMRMRDImage:
+    
+    cdef cppismrmrd.Image[float] *thisptr
+    
+    def __cinit__(self, x, y, z, c):
+        self.thisptr = new cppismrmrd.Image[float](x, y, z, c)
+        
+    def __dealloc__(self):
+        del self.thisptr
