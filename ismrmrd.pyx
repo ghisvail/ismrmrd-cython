@@ -31,9 +31,9 @@ cdef class EncodingCounters:
         free(self.thisptr)
 
     def __copy__(self):
-        cdef EncodingCounters copied = EncodingCounters()
-        copied.copy_from(self.thisptr)
-        return copied
+        cdef EncodingCounters acopy = EncodingCounters()
+        acopy.copy_from(self.thisptr)
+        return acopy
 
     cdef copy_from(self, cismrmrd.ISMRMRD_EncodingCounters *ptr):
         memcpy(self.thisptr, ptr, sizeof(cismrmrd.ISMRMRD_EncodingCounters))
@@ -99,9 +99,9 @@ cdef class AcquisitionHeader:
         free(self.thisptr)
 
     def __copy__(self):
-        cdef AcquisitionHeader copied = AcquisitionHeader()
-        copied.copy_from(self.thisptr)
-        return copied
+        cdef AcquisitionHeader acopy = AcquisitionHeader()
+        acopy.copy_from(self.thisptr)
+        return acopy
 
     cdef copy_from(self, cismrmrd.ISMRMRD_AcquisitionHeader *ptr):
         memcpy(self.thisptr, ptr, sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
@@ -258,6 +258,11 @@ cdef class Acquisition:
     def __dealloc__(self):
         cismrmrd.ismrmrd_free_acquisition(self.thisptr)
 
+    def __copy__(self):
+        cdef Acquisition acopy = Acquisition()
+        cismrmrd.ismrmrd_copy_acquisition(acopy.thisptr, self.thisptr)
+        return acopy
+
     property head:
         def __get__(self):
             cdef AcquisitionHeader head = AcquisitionHeader()
@@ -299,9 +304,9 @@ cdef class ImageHeader:
         free(self.thisptr)
 
     def __copy__(self):
-        cdef ImageHeader copied = ImageHeader()
-        copied.copy_from(self.thisptr)
-        return copied
+        cdef ImageHeader acopy = ImageHeader()
+        acopy.copy_from(self.thisptr)
+        return acopy
 
     cdef copy_from(self, cismrmrd.ISMRMRD_ImageHeader *ptr):
         memcpy(self.thisptr, ptr, sizeof(cismrmrd.ISMRMRD_ImageHeader))
@@ -459,6 +464,11 @@ cdef class Image:
 
     def __dealloc__(self):
         cismrmrd.ismrmrd_free_image(self.thisptr)
+
+    def __copy__(self):
+        cdef Image acopy = Image()
+        cismrmrd.ismrmrd_copy_image(acopy.thisptr, self.thisptr)
+        return acopy
 
     property head:
         def __get__(self):
