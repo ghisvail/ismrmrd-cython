@@ -540,15 +540,26 @@ cdef class Image:
 cdef class Dataset:
 
     cdef cismrmrd.ISMRMRD_Dataset *thisptr
+    cdef bint is_open
 
-    def __cinit__(self, const char *filename, const char *groupname, bint create_if_needed):
+    def __cinit__(self, const char *filename, const char *groupname):
         self.thisptr = <cismrmrd.ISMRMRD_Dataset*>calloc(1, sizeof(cismrmrd.ISMRMRD_Dataset))
         cismrmrd.ismrmrd_init_dataset(self.thisptr, filename, groupname)
-        cismrmrd.ismrmrd_open_dataset(self.thisptr, create_if_needed)
+        self.is_open = False
 
     def __dealloc__(self):
-        cismrmrd.ismrmrd_close_dataset(self.thisptr)
+        self.close()
         free(self.thisptr)
+
+    def open(self, create_if_needed=True):
+        if not self.is_open:
+            cismrmrd.ismrmrd_open_dataset(self.thisptr, create_if_needed)
+            self.is_open = True
+        
+    def close(self):
+        if self.is_open:
+            cismrmrd.ismrmrd_close_dataset(self.thisptr)
+            self.is_open = False
 
     property filename:
         def __get__(self): return self.thisptr.filename
