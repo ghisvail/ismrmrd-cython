@@ -7,16 +7,6 @@ numpy.import_array()
 
 #### Helper functions
 
-cdef AcquisitionHeader_from_struct(cismrmrd.ISMRMRD_AcquisitionHeader *other):
-    head = AcquisitionHeader()
-    memcpy(head.thisptr, other, sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
-    return head
-
-cdef ImageHeader_from_struct(cismrmrd.ISMRMRD_ImageHeader *other):
-    head = ImageHeader()
-    memcpy(head.thisptr, other, sizeof(cismrmrd.ISMRMRD_ImageHeader))
-    return head
-
 cdef dict ismrmrd_to_numpy_dtypes_dict = {
     cismrmrd.ISMRMRD_USHORT:    numpy.NPY_UINT16,
     cismrmrd.ISMRMRD_SHORT:     numpy.NPY_INT16,
@@ -32,10 +22,21 @@ cdef dict ismrmrd_to_numpy_dtypes_dict = {
 
 cdef class EncodingCounters:
     cdef cismrmrd.ISMRMRD_EncodingCounters *thisptr
-    def __cinit__(self):
+    def __cinit__(self, other = None):
         self.thisptr = <cismrmrd.ISMRMRD_EncodingCounters*>calloc(1, sizeof(cismrmrd.ISMRMRD_EncodingCounters))
     def __dealloc__(self):
         free(self.thisptr)
+
+    def __copy__(self):
+        cdef EncodingCounters copied = EncodingCounters()
+        copied.copy_from(self.thisptr)
+        return copied
+
+    cdef copy_from(self, cismrmrd.ISMRMRD_EncodingCounters *ptr):
+        memcpy(self.thisptr, ptr, sizeof(cismrmrd.ISMRMRD_EncodingCounters))
+
+    cdef copy_to(self, cismrmrd.ISMRMRD_EncodingCounters *ptr):
+        memcpy(ptr, self.thisptr, sizeof(cismrmrd.ISMRMRD_EncodingCounters))
 
     property kspace_encode_step_1:
         def __get__(self): return self.thisptr.kspace_encode_step_1
@@ -89,6 +90,17 @@ cdef class AcquisitionHeader:
         self.thisptr = <cismrmrd.ISMRMRD_AcquisitionHeader*>calloc(1, sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
     def __dealloc__(self):
         free(self.thisptr)
+
+    def __copy__(self):
+        cdef AcquisitionHeader copied = AcquisitionHeader()
+        copied.copy_from(self.thisptr)
+        return copied
+
+    cdef copy_from(self, cismrmrd.ISMRMRD_AcquisitionHeader *ptr):
+        memcpy(self.thisptr, ptr, sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
+
+    cdef copy_to(self, cismrmrd.ISMRMRD_AcquisitionHeader *ptr):
+        memcpy(ptr, self.thisptr, sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
 
     property version:
         def __get__(self): return self.thisptr.version
@@ -203,10 +215,12 @@ cdef class AcquisitionHeader:
                 self.thisptr.patient_table_position[i] = val[i]
 
     property idx:
-        def __get__(self): return self.idx
+        def __get__(self):
+            cdef EncodingCounters idx = EncodingCounters()
+            idx.copy_from(&self.thisptr.idx)
+            return idx
         def __set__(self, EncodingCounters val):
-            memcpy(&self.thisptr.idx, val.thisptr,
-                    sizeof(cismrmrd.ISMRMRD_EncodingCounters))            
+            val.copy_to(&self.thisptr.idx)
 
     property user_int:
         def __get__(self):
@@ -232,10 +246,12 @@ cdef class Acquisition:
         cismrmrd.ismrmrd_free_acquisition(self.thisptr)
 
     property head:
-        def __get__(self): return AcquisitionHeader_from_struct(&self.thisptr.head)
+        def __get__(self):
+            cdef AcquisitionHeader head = AcquisitionHeader()
+            head.copy_from(&self.thisptr.head)
+            return head
         def __set__(self, AcquisitionHeader head):
-            memcpy(&self.thisptr.head, head.thisptr,
-                    sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
+            head.copy_to(&self.thisptr.head)
             cismrmrd.ismrmrd_make_consistent_acquisition(self.thisptr)
 
     property data:
@@ -264,6 +280,17 @@ cdef class ImageHeader:
         self.thisptr = <cismrmrd.ISMRMRD_ImageHeader*>calloc(1, sizeof(cismrmrd.ISMRMRD_ImageHeader))
     def __dealloc__(self):
         free(self.thisptr)
+
+    def __copy__(self):
+        cdef ImageHeader copied = ImageHeader()
+        copied.copy_from(self.thisptr)
+        return copied
+
+    cdef copy_from(self, cismrmrd.ISMRMRD_ImageHeader *ptr):
+        memcpy(self.thisptr, ptr, sizeof(cismrmrd.ISMRMRD_ImageHeader))
+
+    cdef copy_to(self, cismrmrd.ISMRMRD_ImageHeader *ptr):
+        memcpy(ptr, self.thisptr, sizeof(cismrmrd.ISMRMRD_ImageHeader))
 
     property version:
         def __get__(self): return self.thisptr.version
@@ -411,7 +438,13 @@ cdef class Image:
         cismrmrd.ismrmrd_free_image(self.thisptr)
 
     property head:
-        def __get__(self): return ImageHeader_from_struct(&self.thisptr.head)
+        def __get__(self):
+            cdef ImageHeader head = ImageHeader()
+            head.copy_from(&self.thisptr.head)
+            return head
+        def __set__(self, ImageHeader head):
+            head.copy_to(&self.thisptr.head)
+            cismrmrd.ismrmrd_make_consistent_image(self.thisptr)
         
     property attribute_string:
         def __get__(self): return self.thisptr.attribute_string
