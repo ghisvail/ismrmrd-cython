@@ -181,15 +181,19 @@ cdef extern from "ismrmrd/dataset.h":
     cdef char *ismrmrd_read_header(const ISMRMRD_Dataset *)
     cdef int ismrmrd_write_header(ISMRMRD_Dataset *, const char *)
     cdef uint32_t ismrmrd_get_number_of_acquisitions(const ISMRMRD_Dataset*)
-    cdef int ismrmrd_append_acquisition(ISMRMRD_Dataset *, const ISMRMRD_Acquisition *)
-    cdef int ismrmrd_read_acquisition(const ISMRMRD_Dataset *, uint32_t , ISMRMRD_Acquisition *)
-    cdef uint32_t ismrmrd_get_number_of_images(const ISMRMRD_Dataset *, const char *)
+    cdef int ismrmrd_append_acquisition(ISMRMRD_Dataset *,
+            const ISMRMRD_Acquisition *)
+    cdef int ismrmrd_read_acquisition(const ISMRMRD_Dataset *, uint32_t,
+            ISMRMRD_Acquisition *)
+    cdef uint32_t ismrmrd_get_number_of_images(const ISMRMRD_Dataset *,
+            const char *)
     cdef int ismrmrd_append_image(ISMRMRD_Dataset *, const char *,
-                         const int, const ISMRMRD_Image *)
+            const ISMRMRD_Image *)
     cdef int ismrmrd_read_image(const ISMRMRD_Dataset *, const char *,
-                       const uint32_t, ISMRMRD_Image *)
-    cdef uint32_t ismrmrd_get_number_of_arrays(const ISMRMRD_Dataset *, const char *)
-    cdef int ismrmrd_append_array(ISMRMRD_Dataset *dset, const char *varname,
-                            const int block_mode, const ISMRMRD_NDArray *)
+            const uint32_t, ISMRMRD_Image *)
+    cdef uint32_t ismrmrd_get_number_of_arrays(const ISMRMRD_Dataset *,
+            const char *)
+    cdef int ismrmrd_append_array(ISMRMRD_Dataset *dset, const char *,
+            const ISMRMRD_NDArray *)
     cdef int ismrmrd_read_array(const ISMRMRD_Dataset *, const char *,
-                        const uint32_t, ISMRMRD_NDArray *)
+            const uint32_t, ISMRMRD_NDArray *)
