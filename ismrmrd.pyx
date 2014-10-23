@@ -1,12 +1,13 @@
 cimport cismrmrd
 from libc.stdlib cimport calloc, free
 from libc.string cimport memcpy
+
+# required for PyArray* functions and dtypes
 import numpy
 cimport numpy
 numpy.import_array()
 
-#### Helper functions
-
+# conversion table between ISMRMRD and Numpy dtypes
 cdef dict ismrmrd_to_numpy_dtypes_dict = {
     cismrmrd.ISMRMRD_USHORT:    numpy.NPY_UINT16,
     cismrmrd.ISMRMRD_SHORT:     numpy.NPY_INT16,
@@ -18,12 +19,14 @@ cdef dict ismrmrd_to_numpy_dtypes_dict = {
     cismrmrd.ISMRMRD_CXDOUBLE:  numpy.NPY_COMPLEX128,
 }
 
-####
 
 cdef class EncodingCounters:
+
     cdef cismrmrd.ISMRMRD_EncodingCounters *thisptr
+
     def __cinit__(self, other = None):
         self.thisptr = <cismrmrd.ISMRMRD_EncodingCounters*>calloc(1, sizeof(cismrmrd.ISMRMRD_EncodingCounters))
+
     def __dealloc__(self):
         free(self.thisptr)
 
@@ -84,10 +87,14 @@ cdef class EncodingCounters:
             for i in range(cismrmrd.ISMRMRD_USER_INTS):
                 self.thisptr.user[i] = vals[i]
 
+
 cdef class AcquisitionHeader:
+
     cdef cismrmrd.ISMRMRD_AcquisitionHeader *thisptr
+
     def __cinit__(self):
         self.thisptr = <cismrmrd.ISMRMRD_AcquisitionHeader*>calloc(1, sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
+
     def __dealloc__(self):
         free(self.thisptr)
 
@@ -238,12 +245,16 @@ cdef class AcquisitionHeader:
             for i in range(cismrmrd.ISMRMRD_USER_FLOATS):
                 self.thisptr.user_float[i] = val[i]
 
+
 cdef class Acquisition:
+
     cdef cismrmrd.ISMRMRD_Acquisition *thisptr
+
     def __cinit__(self, AcquisitionHeader head=None):
         self.thisptr = <cismrmrd.ISMRMRD_Acquisition*>cismrmrd.ismrmrd_create_acquisition()
         if head is not None:
             self.head = head 
+
     def __dealloc__(self):
         cismrmrd.ismrmrd_free_acquisition(self.thisptr)
 
@@ -276,10 +287,14 @@ cdef class Acquisition:
             return numpy.PyArray_SimpleNewFromData(2, shape_traj,
                     numpy.NPY_FLOAT32, <void *>(self.thisptr.traj))
 
+
 cdef class ImageHeader:
+
     cdef cismrmrd.ISMRMRD_ImageHeader *thisptr
+
     def __cinit__(self):
         self.thisptr = <cismrmrd.ISMRMRD_ImageHeader*>calloc(1, sizeof(cismrmrd.ISMRMRD_ImageHeader))
+
     def __dealloc__(self):
         free(self.thisptr)
 
@@ -432,12 +447,16 @@ cdef class ImageHeader:
             for i in range(cismrmrd.ISMRMRD_USER_FLOATS):
                 self.thisptr.user_int[i] = val[i]
 
+
 cdef class Image:
+
     cdef cismrmrd.ISMRMRD_Image *thisptr
+
     def __cinit__(self, ImageHeader head=None):
         self.thisptr = <cismrmrd.ISMRMRD_Image*>cismrmrd.ismrmrd_create_image()
         if head is not None:
             self.head = head
+
     def __dealloc__(self):
         cismrmrd.ismrmrd_free_image(self.thisptr)
 
@@ -462,27 +481,34 @@ cdef class Image:
             return numpy.PyArray_SimpleNewFromData(3, shape_data,
                     typenum, <void *>(self.thisptr.data))
 
+
 cdef class Dataset:
+
     cdef cismrmrd.ISMRMRD_Dataset *thisptr
+
     def __cinit__(self, const char *filename, const char *groupname, bint create_if_needed):
         self.thisptr = <cismrmrd.ISMRMRD_Dataset*>calloc(1, sizeof(cismrmrd.ISMRMRD_Dataset))
         cismrmrd.ismrmrd_init_dataset(self.thisptr, filename, groupname)
         cismrmrd.ismrmrd_open_dataset(self.thisptr, create_if_needed)
+
     def __dealloc__(self):
         cismrmrd.ismrmrd_close_dataset(self.thisptr)
         free(self.thisptr)
 
     property filename:
         def __get__(self): return self.thisptr.filename
+
     property groupname:
         def __get__(self): return self.thisptr.filename
+
     property fileid:
         def __get__(self): return self.thisptr.fileid
 
     def write_header(self, xmlstring):
         cismrmrd.ismrmrd_write_header(self.thisptr, xmlstring)
+
     def read_header(self):
         return cismrmrd.ismrmrd_read_header(self.thisptr)
-    
+
     def append_acquisition(self, Acquisition acq):
         return cismrmrd.ismrmrd_append_acquisition(self.thisptr, acq.thisptr)
