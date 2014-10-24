@@ -135,6 +135,9 @@ cdef class AcquisitionHeader:
 
     def __cinit__(self):
         self.thisptr = <cismrmrd.ISMRMRD_AcquisitionHeader*>calloc(1, sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
+        errno = cismrmrd.ismrmrd_init_acquisition_header(self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to initialize acquisition header")
 
     def __dealloc__(self):
         free(self.thisptr)
@@ -293,17 +296,23 @@ cdef class Acquisition:
 
     def __cinit__(self, AcquisitionHeader head=None):
         self.thisptr = <cismrmrd.ISMRMRD_Acquisition*>calloc(1, sizeof(cismrmrd.ISMRMRD_Acquisition))
-        cismrmrd.ismrmrd_init_acquisition(self.thisptr)
+        errno = cismrmrd.ismrmrd_init_acquisition(self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to initialize acquisition")
         if head is not None:
             self.head = head 
 
     def __dealloc__(self):
-        cismrmrd.ismrmrd_cleanup_acquisition(self.thisptr)
+        errno = cismrmrd.ismrmrd_cleanup_acquisition(self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to cleanup acquisition")
         free(self.thisptr)
 
     def __copy__(self):
         cdef Acquisition acopy = Acquisition()
-        cismrmrd.ismrmrd_copy_acquisition(acopy.thisptr, self.thisptr)
+        errno = cismrmrd.ismrmrd_copy_acquisition(acopy.thisptr, self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to copy acquisition")        
         return acopy
 
     property head:
@@ -313,7 +322,9 @@ cdef class Acquisition:
             return head
         def __set__(self, AcquisitionHeader head):
             head.copy_to(&self.thisptr.head)
-            cismrmrd.ismrmrd_make_consistent_acquisition(self.thisptr)
+            errno = cismrmrd.ismrmrd_make_consistent_acquisition(self.thisptr)
+            if errno != cismrmrd.ISMRMRD_NOERROR:
+                raise RuntimeError("Failed to make acquisition consistent")
 
     property data:
         def __get__(self):
@@ -342,6 +353,9 @@ cdef class ImageHeader:
 
     def __cinit__(self):
         self.thisptr = <cismrmrd.ISMRMRD_ImageHeader*>calloc(1, sizeof(cismrmrd.ISMRMRD_ImageHeader))
+        errno = cismrmrd.ismrmrd_init_image_header(self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to initialize image header")
 
     def __dealloc__(self):
         free(self.thisptr)
@@ -502,17 +516,23 @@ cdef class Image:
 
     def __cinit__(self, ImageHeader head=None):
         self.thisptr = <cismrmrd.ISMRMRD_Image*>calloc(1, sizeof(cismrmrd.ISMRMRD_Image))
-        cismrmrd.ismrmrd_init_image(self.thisptr)
+        errno = cismrmrd.ismrmrd_init_image(self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to initialize image")
         if head is not None:
             self.head = head
 
     def __dealloc__(self):
-        cismrmrd.ismrmrd_cleanup_image(self.thisptr)
+        errno = cismrmrd.ismrmrd_cleanup_image(self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to cleanup image")
         free(self.thisptr)
 
     def __copy__(self):
         cdef Image acopy = Image()
-        cismrmrd.ismrmrd_copy_image(acopy.thisptr, self.thisptr)
+        errno = cismrmrd.ismrmrd_copy_image(acopy.thisptr, self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to copy image")
         return acopy
 
     property head:
@@ -522,7 +542,9 @@ cdef class Image:
             return head
         def __set__(self, ImageHeader head):
             head.copy_to(&self.thisptr.head)
-            cismrmrd.ismrmrd_make_consistent_image(self.thisptr)
+            errno = cismrmrd.ismrmrd_make_consistent_image(self.thisptr)
+            if errno != cismrmrd.ISMRMRD_NOERROR:
+                raise RuntimeError("Failed to make image consistent")
         
     property attribute_string:
         def __get__(self): return self.thisptr.attribute_string
@@ -544,7 +566,9 @@ cdef class Dataset:
 
     def __cinit__(self, const char *filename, const char *groupname):
         self.thisptr = <cismrmrd.ISMRMRD_Dataset*>calloc(1, sizeof(cismrmrd.ISMRMRD_Dataset))
-        cismrmrd.ismrmrd_init_dataset(self.thisptr, filename, groupname)
+        errno = cismrmrd.ismrmrd_init_dataset(self.thisptr, filename, groupname)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to initialize dataset")
         self.is_open = False
 
     def __dealloc__(self):
@@ -553,12 +577,16 @@ cdef class Dataset:
 
     def open(self, create_if_needed=True):
         if not self.is_open:
-            cismrmrd.ismrmrd_open_dataset(self.thisptr, create_if_needed)
+            errno = cismrmrd.ismrmrd_open_dataset(self.thisptr, create_if_needed)
+            if errno != cismrmrd.ISMRMRD_NOERROR:
+                raise RuntimeError("Failed to open dataset")
             self.is_open = True
         
     def close(self):
         if self.is_open:
-            cismrmrd.ismrmrd_close_dataset(self.thisptr)
+            errno = cismrmrd.ismrmrd_close_dataset(self.thisptr)
+            if errno != cismrmrd.ISMRMRD_NOERROR:
+                raise RuntimeError("Failed to close dataset")
             self.is_open = False
 
     property filename:
@@ -571,17 +599,23 @@ cdef class Dataset:
         def __get__(self): return self.thisptr.fileid
 
     def write_header(self, xmlstring):
-        cismrmrd.ismrmrd_write_header(self.thisptr, xmlstring)
+        errno = cismrmrd.ismrmrd_write_header(self.thisptr, xmlstring)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to write header")
 
     def read_header(self):
         return cismrmrd.ismrmrd_read_header(self.thisptr)
 
     def append_acquisition(self, Acquisition acq):
-        return cismrmrd.ismrmrd_append_acquisition(self.thisptr, acq.thisptr)
+        errno = cismrmrd.ismrmrd_append_acquisition(self.thisptr, acq.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to append acquisition")
 
     def read_acquisition(self, index):
         cdef Acquisition acq = Acquisition()
-        cismrmrd.ismrmrd_read_acquisition(self.thisptr, index, acq.thisptr)
+        errno = cismrmrd.ismrmrd_read_acquisition(self.thisptr, index, acq.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to read acquisition")
         return acq
 
     @property
@@ -589,11 +623,15 @@ cdef class Dataset:
         return cismrmrd.ismrmrd_get_number_of_acquisitions(self.thisptr)
 
     def append_image(self, varname, Image img):
-        return cismrmrd.ismrmrd_append_image(self.thisptr, varname, img.thisptr)
+        errno = cismrmrd.ismrmrd_append_image(self.thisptr, varname, img.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to append image")
 
     def read_image(self, varname, index):
         cdef Image img = Image()
-        cismrmrd.ismrmrd_read_image(self.thisptr, varname, index, img.thisptr)
+        errno = cismrmrd.ismrmrd_read_image(self.thisptr, varname, index, img.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to read image")
         return img
 
     def number_of_images(self, varname):
