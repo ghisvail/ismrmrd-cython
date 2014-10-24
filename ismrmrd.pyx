@@ -79,9 +79,13 @@ cdef bytes build_exception_string():
     cdef int line=0, code=0
     cdef bytes err_string
     if(cismrmrd.ismrmrd_pop_error(&pfile, &line, &pfunc, &code, &pmsg)):
-        err_string = ("ISMRMRD " + <bytes> cismrmrd.ismrmrd_strerror(code) +
-                " in " + <bytes> pfunc + " (" + <bytes> pfile + ":" + line +
-                ":" <bytes> pmsg + ")\n")
+        err_string = "ISMRMRD {0} in {1} ({2}:{3})".format(
+            <bytes> cismrmrd.ismrmrd_strerror(code),
+            <bytes> pfunc,
+            <bytes> pfile,
+            line,
+            <bytes> pmsg,
+            )
     return err_string
 
 
@@ -161,7 +165,7 @@ cdef class AcquisitionHeader:
         self.thisptr = <cismrmrd.ISMRMRD_AcquisitionHeader*>calloc(1, sizeof(cismrmrd.ISMRMRD_AcquisitionHeader))
         errno = cismrmrd.ismrmrd_init_acquisition_header(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to initialize acquisition header")
+            raise RuntimeError(build_exception_string())
 
     def __dealloc__(self):
         free(self.thisptr)
@@ -322,21 +326,21 @@ cdef class Acquisition:
         self.thisptr = <cismrmrd.ISMRMRD_Acquisition*>calloc(1, sizeof(cismrmrd.ISMRMRD_Acquisition))
         errno = cismrmrd.ismrmrd_init_acquisition(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to initialize acquisition")
+            raise RuntimeError(build_exception_string())
         if head is not None:
             self.head = head 
 
     def __dealloc__(self):
         errno = cismrmrd.ismrmrd_cleanup_acquisition(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to cleanup acquisition")
+            raise RuntimeError(build_exception_string())
         free(self.thisptr)
 
     def __copy__(self):
         cdef Acquisition acopy = Acquisition()
         errno = cismrmrd.ismrmrd_copy_acquisition(acopy.thisptr, self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to copy acquisition")        
+            raise RuntimeError(build_exception_string())        
         return acopy
 
     property head:
@@ -348,7 +352,7 @@ cdef class Acquisition:
             head.copy_to(&self.thisptr.head)
             errno = cismrmrd.ismrmrd_make_consistent_acquisition(self.thisptr)
             if errno != cismrmrd.ISMRMRD_NOERROR:
-                raise RuntimeError("Failed to make acquisition consistent")
+                raise RuntimeError(build_exception_string())
 
     property data:
         def __get__(self):
@@ -379,7 +383,7 @@ cdef class ImageHeader:
         self.thisptr = <cismrmrd.ISMRMRD_ImageHeader*>calloc(1, sizeof(cismrmrd.ISMRMRD_ImageHeader))
         errno = cismrmrd.ismrmrd_init_image_header(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to initialize image header")
+            raise RuntimeError(build_exception_string())
 
     def __dealloc__(self):
         free(self.thisptr)
@@ -542,21 +546,21 @@ cdef class Image:
         self.thisptr = <cismrmrd.ISMRMRD_Image*>calloc(1, sizeof(cismrmrd.ISMRMRD_Image))
         errno = cismrmrd.ismrmrd_init_image(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to initialize image")
+            raise RuntimeError(build_exception_string())
         if head is not None:
             self.head = head
 
     def __dealloc__(self):
         errno = cismrmrd.ismrmrd_cleanup_image(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to cleanup image")
+            raise RuntimeError(build_exception_string())
         free(self.thisptr)
 
     def __copy__(self):
         cdef Image acopy = Image()
         errno = cismrmrd.ismrmrd_copy_image(acopy.thisptr, self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to copy image")
+            raise RuntimeError(build_exception_string())
         return acopy
 
     property head:
@@ -568,7 +572,7 @@ cdef class Image:
             head.copy_to(&self.thisptr.head)
             errno = cismrmrd.ismrmrd_make_consistent_image(self.thisptr)
             if errno != cismrmrd.ISMRMRD_NOERROR:
-                raise RuntimeError("Failed to make image consistent")
+                raise RuntimeError(build_exception_string())
         
     property attribute_string:
         def __get__(self): return self.thisptr.attribute_string
@@ -591,7 +595,7 @@ cdef class NDArray:
         self.thisptr = <cismrmrd.ISMRMRD_NDArray*>calloc(1, sizeof(cismrmrd.ISMRMRD_NDArray))
         errno = cismrmrd.ismrmrd_init_ndarray(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to initialize array")
+            raise RuntimeError(build_exception_string())
         if dtype is not None:
             self.dtype = dtype
         if shape is not None:
@@ -600,14 +604,14 @@ cdef class NDArray:
     def __dealloc__(self):
         errno = cismrmrd.ismrmrd_cleanup_ndarray(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to cleanup array")
+            raise RuntimeError(build_exception_string())
         free(self.thisptr)
 
     def __copy__(self):
         cdef NDArray acopy = NDArray()
         errno = cismrmrd.ismrmrd_copy_ndarray(acopy.thisptr, self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to copy array")
+            raise RuntimeError(build_exception_string())
         return acopy
 
     property version:
@@ -619,7 +623,7 @@ cdef class NDArray:
             self.thisptr.data_type = val
             errno = cismrmrd.ismrmrd_make_consistent_ndarray(self.thisptr)
             if errno != cismrmrd.ISMRMRD_NOERROR:
-                raise RuntimeError("Failed to make array consistent")
+                raise RuntimeError(build_exception_string())
 
     property ndim:
         def __get__(self): return self.thisptr.ndim
@@ -634,7 +638,7 @@ cdef class NDArray:
                 self.thisptr.dims[idim] = val[idim]
             errno = cismrmrd.ismrmrd_make_consistent_ndarray(self.thisptr)
             if errno != cismrmrd.ISMRMRD_NOERROR:
-                raise RuntimeError("Failed to make array consistent")
+                raise RuntimeError(build_exception_string())
 
     property data:
         def __get__(self):
@@ -659,7 +663,7 @@ cdef class Dataset:
         self.thisptr = <cismrmrd.ISMRMRD_Dataset*>calloc(1, sizeof(cismrmrd.ISMRMRD_Dataset))
         errno = cismrmrd.ismrmrd_init_dataset(self.thisptr, filename, groupname)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to initialize dataset")
+            raise RuntimeError(build_exception_string())
         self.is_open = False
 
     def __dealloc__(self):
@@ -670,14 +674,14 @@ cdef class Dataset:
         if not self.is_open:
             errno = cismrmrd.ismrmrd_open_dataset(self.thisptr, create_if_needed)
             if errno != cismrmrd.ISMRMRD_NOERROR:
-                raise RuntimeError("Failed to open dataset")
+                raise RuntimeError(build_exception_string())
             self.is_open = True
         
     def close(self):
         if self.is_open:
             errno = cismrmrd.ismrmrd_close_dataset(self.thisptr)
             if errno != cismrmrd.ISMRMRD_NOERROR:
-                raise RuntimeError("Failed to close dataset")
+                raise RuntimeError(build_exception_string())
             self.is_open = False
 
     property filename:
@@ -692,7 +696,7 @@ cdef class Dataset:
     def write_header(self, xmlstring):
         errno = cismrmrd.ismrmrd_write_header(self.thisptr, xmlstring)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to write header")
+            raise RuntimeError(build_exception_string())
 
     def read_header(self):
         return cismrmrd.ismrmrd_read_header(self.thisptr)
@@ -700,13 +704,13 @@ cdef class Dataset:
     def append_acquisition(self, Acquisition acq):
         errno = cismrmrd.ismrmrd_append_acquisition(self.thisptr, acq.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to append acquisition")
+            raise RuntimeError(build_exception_string())
 
     def read_acquisition(self, index):
         cdef Acquisition acq = Acquisition()
         errno = cismrmrd.ismrmrd_read_acquisition(self.thisptr, index, acq.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to read acquisition")
+            raise RuntimeError(build_exception_string())
         return acq
 
     @property
@@ -716,14 +720,29 @@ cdef class Dataset:
     def append_image(self, varname, Image img):
         errno = cismrmrd.ismrmrd_append_image(self.thisptr, varname, img.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to append image")
+            raise RuntimeError(build_exception_string())
 
     def read_image(self, varname, index):
         cdef Image img = Image()
         errno = cismrmrd.ismrmrd_read_image(self.thisptr, varname, index, img.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError("Failed to read image")
+            raise RuntimeError(build_exception_string())
         return img
 
     def number_of_images(self, varname):
         return cismrmrd.ismrmrd_get_number_of_images(self.thisptr, varname)
+
+    def append_array(self, varname, NDArray arr):
+        errno = cismrmrd.ismrmrd_append_array(self.thisptr, varname, arr.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError(build_exception_string().decode('UTF-8'))        
+
+    def read_array(self, varname, index):
+        cdef NDArray arr = NDArray()
+        errno = cismrmrd.ismrmrd_read_array(self.thisptr, varname, index, arr.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError(build_exception_string())
+        return arr
+
+    def number_of_arrays(self, varname):
+        return cismrmrd.ismrmrd_get_number_of_arrays(self.thisptr, varname)
