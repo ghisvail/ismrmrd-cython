@@ -635,11 +635,15 @@ cdef class NDArray:
     property data:
         def __get__(self):
             cdef numpy.npy_intp shape_data[cismrmrd.ISMRMRD_NDARRAY_MAXDIM]
-            for idim in range(self.shape):
-                shape_data[idim] = self.shape[idim]
-            cdef int typenum = ismrmrd_to_numpy_dtypes_dict[self.thisptr.data_type]
-            return numpy.PyArray_SimpleNewFromData(self.dims, shape_data,
-                    typenum, <void *>(self.thisptr.data))   
+            cdef int typenum
+            if self.dtype == 0:
+                return None
+            else:
+                for idim in range(self.ndim):
+                    shape_data[idim] = self.shape[idim]
+                typenum = ismrmrd_to_numpy_dtypes_dict[self.thisptr.data_type]
+                return numpy.PyArray_SimpleNewFromData(self.ndim, shape_data,
+                        typenum, <void *>(self.thisptr.data))   
 
 
 cdef class Dataset:
