@@ -587,11 +587,15 @@ cdef class NDArray:
     
     cdef cismrmrd.ISMRMRD_NDArray *thisptr
 
-    def __cinit__(self):
+    def __cinit__(self, shape=None, dtype=None):
         self.thisptr = <cismrmrd.ISMRMRD_NDArray*>calloc(1, sizeof(cismrmrd.ISMRMRD_NDArray))
         errno = cismrmrd.ismrmrd_init_ndarray(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
             raise RuntimeError("Failed to initialize array")
+        if dtype is not None:
+            self.dtype = dtype
+        if shape is not None:
+            self.shape = shape
 
     def __dealloc__(self):
         errno = cismrmrd.ismrmrd_cleanup_ndarray(self.thisptr)
