@@ -11,6 +11,16 @@ cdef extern from "ismrmrd/ismrmrd.h":
         ISMRMRD_POSITION_LENGTH = 3
         ISMRMRD_DIRECTION_LENGTH = 3
 
+    ctypedef enum ISMRMRD_ErrorCodes:
+        ISMRMRD_BEGINERROR
+        ISMRMRD_NOERROR
+        ISMRMRD_MEMORYERROR
+        ISMRMRD_FILEERROR
+        ISMRMRD_TYPEERROR
+        ISMRMRD_RUNTIMEERROR
+        ISMRMRD_HDF5ERROR
+        ISMRMRD_ENDERROR
+
     ctypedef struct ISMRMRD_EncodingCounters:
         uint16_t kspace_encode_step_1  # e.g. phase encoding line number
         uint16_t kspace_encode_step_2  # e.g. partition encodning number
