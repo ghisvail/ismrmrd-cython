@@ -373,6 +373,8 @@ cdef class Acquisition:
             # careful here, thisptr is a R-W view
             return numpy.PyArray_SimpleNewFromData(2, shape_data,
                     numpy.NPY_COMPLEX64, <void *>(self.thisptr.data))
+        def __set__(self, val):
+            self.data.ravel()[:] = numpy.asarray(val).ravel()[:]
 
     property traj:
         def __get__(self):
@@ -384,6 +386,8 @@ cdef class Acquisition:
             # which is arguably better than returning a NoneType.
             return numpy.PyArray_SimpleNewFromData(2, shape_traj,
                     numpy.NPY_FLOAT32, <void *>(self.thisptr.traj))
+        def __set__(self, val):
+            self.data.ravel()[:] = numpy.asarray(val).ravel()[:]
 
 
 cdef class ImageHeader:
@@ -596,6 +600,8 @@ cdef class Image:
             cdef int typenum = ismrmrd_to_numpy_typenums_dict[self.head.data_type]
             return numpy.PyArray_SimpleNewFromData(3, shape_data,
                     typenum, <void *>(self.thisptr.data))
+        def __set__(self, val):
+            self.data.ravel()[:] = numpy.asarray(val).ravel()[:]
 
 
 cdef class NDArray:
@@ -607,8 +613,9 @@ cdef class NDArray:
         errno = cismrmrd.ismrmrd_init_ndarray(self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
             raise RuntimeError(build_exception_string())
-        if dtype is not None:
-            self.dtype = dtype
+        # default dtype is numpy.dtype(None), normally float64
+        self.dtype = dtype
+        # shape remain optional
         if shape is not None:
             self.shape = shape
 
@@ -656,15 +663,13 @@ cdef class NDArray:
     property data:
         def __get__(self):
             cdef numpy.npy_intp shape_data[cismrmrd.ISMRMRD_NDARRAY_MAXDIM]
-            cdef int typenum
-            if self.dtype == 0:
-                return None
-            else:
-                for idim in range(self.ndim):
-                    shape_data[idim] = self.shape[idim]
-                typenum = ismrmrd_to_numpy_typenums_dict[self.thisptr.data_type]
-                return numpy.PyArray_SimpleNewFromData(self.ndim, shape_data,
-                        typenum, <void *>(self.thisptr.data))   
+            for idim in range(self.ndim):
+                shape_data[idim] = self.shape[idim]
+            cdef int typenum = ismrmrd_to_numpy_typenums_dict[self.thisptr.data_type]
+            return numpy.PyArray_SimpleNewFromData(self.ndim, shape_data,
+                    typenum, <void *>(self.thisptr.data))
+        def __set__(self, val):
+            self.data.ravel()[:] = numpy.asarray(val).ravel()[:]
 
 
 cdef class Dataset:
