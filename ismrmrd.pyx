@@ -19,6 +19,17 @@ cdef dict ismrmrd_to_numpy_dtypes_dict = {
     cismrmrd.ISMRMRD_CXDOUBLE:  numpy.NPY_COMPLEX128,
 }
 
+# expose ismrmrd dtypes to Python namespace for NDArray object
+# TODO: handle implicit conversion from numpy-dtypes directly
+ISMRMRD_USHORT      = cismrmrd.ISMRMRD_USHORT
+ISMRMRD_SHORT       = cismrmrd.ISMRMRD_SHORT
+ISMRMRD_UINT        = cismrmrd.ISMRMRD_UINT
+ISMRMRD_INT         = cismrmrd.ISMRMRD_INT
+ISMRMRD_FLOAT       = cismrmrd.ISMRMRD_FLOAT
+ISMRMRD_DOUBLE      = cismrmrd.ISMRMRD_DOUBLE
+ISMRMRD_CXFLOAT     = cismrmrd.ISMRMRD_CXFLOAT
+ISMRMRD_CXDOUBLE    = cismrmrd.ISMRMRD_CXDOUBLE
+
 # expose acquisition flags to Python namespace
 # TODO: encapsulate that to a class and let set_flag / clear_flag be the 
 # only interface
@@ -59,6 +70,19 @@ ACQ_USER5 = cismrmrd.ISMRMRD_ACQ_USER5
 ACQ_USER6 = cismrmrd.ISMRMRD_ACQ_USER6
 ACQ_USER7 = cismrmrd.ISMRMRD_ACQ_USER7
 ACQ_USER8 = cismrmrd.ISMRMRD_ACQ_USER8
+
+
+cdef bytes build_exception_string():
+    cdef char *pfile = NULL
+    cdef char *pfunc = NULL
+    cdef char *pmsg  = NULL
+    cdef int line=0, code=0
+    cdef bytes err_string
+    if(cismrmrd.ismrmrd_pop_error(&pfile, &line, &pfunc, &code, &pmsg)):
+        err_string = ("ISMRMRD " + <bytes> cismrmrd.ismrmrd_strerror(code) +
+                " in " + <bytes> pfunc + " (" + <bytes> pfile + ":" + line +
+                ":" <bytes> pmsg + ")\n")
+    return err_string
 
 
 cdef class EncodingCounters:
@@ -557,6 +581,65 @@ cdef class Image:
             cdef int typenum = ismrmrd_to_numpy_dtypes_dict[self.head.data_type]
             return numpy.PyArray_SimpleNewFromData(3, shape_data,
                     typenum, <void *>(self.thisptr.data))
+
+
+cdef class NDArray:
+    
+    cdef cismrmrd.ISMRMRD_NDArray *thisptr
+
+    def __cinit__(self):
+        self.thisptr = <cismrmrd.ISMRMRD_NDArray*>calloc(1, sizeof(cismrmrd.ISMRMRD_NDArray))
+        errno = cismrmrd.ismrmrd_init_ndarray(self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to initialize array")
+
+    def __dealloc__(self):
+        errno = cismrmrd.ismrmrd_cleanup_ndarray(self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to cleanup array")
+        free(self.thisptr)
+
+    def __copy__(self):
+        cdef NDArray acopy = NDArray()
+        errno = cismrmrd.ismrmrd_copy_ndarray(acopy.thisptr, self.thisptr)
+        if errno != cismrmrd.ISMRMRD_NOERROR:
+            raise RuntimeError("Failed to copy array")
+        return acopy
+
+    property version:
+        def __get__(self): return self.thisptr.version 
+        
+    property dtype:
+        def __get__(self): return self.thisptr.data_type
+        def __set__(self, val):
+            self.thisptr.data_type = val
+            errno = cismrmrd.ismrmrd_make_consistent_ndarray(self.thisptr)
+            if errno != cismrmrd.ISMRMRD_NOERROR:
+                raise RuntimeError("Failed to make array consistent")
+
+    property ndim:
+        def __get__(self): return self.thisptr.ndim
+        def __set__(self, val): self.thisptr.ndim = val
+        
+    property shape:
+        def __get__(self):
+            return [self.thisptr.dims[i] for i in range(self.ndim)]
+        def __set__(self, val):
+            self.ndim = len(val)
+            for idim in range(self.ndim):
+                self.thisptr.dims[idim] = val[idim]
+            errno = cismrmrd.ismrmrd_make_consistent_ndarray(self.thisptr)
+            if errno != cismrmrd.ISMRMRD_NOERROR:
+                raise RuntimeError("Failed to make array consistent")
+
+    property data:
+        def __get__(self):
+            cdef numpy.npy_intp shape_data[cismrmrd.ISMRMRD_NDARRAY_MAXDIM]
+            for idim in range(self.shape):
+                shape_data[idim] = self.shape[idim]
+            cdef int typenum = ismrmrd_to_numpy_dtypes_dict[self.thisptr.data_type]
+            return numpy.PyArray_SimpleNewFromData(self.dims, shape_data,
+                    typenum, <void *>(self.thisptr.data))   
 
 
 cdef class Dataset:
