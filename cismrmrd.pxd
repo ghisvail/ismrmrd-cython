@@ -21,6 +21,9 @@ cdef extern from "ismrmrd/ismrmrd.h":
         ISMRMRD_HDF5ERROR
         ISMRMRD_ENDERROR
 
+    cdef bint ismrmrd_pop_error(char**, int*, char**, int*, char**)
+    char* ismrmrd_strerror(int)
+
     ctypedef struct ISMRMRD_EncodingCounters:
         uint16_t kspace_encode_step_1  # e.g. phase encoding line number
         uint16_t kspace_encode_step_2  # e.g. partition encodning number
