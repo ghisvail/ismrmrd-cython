@@ -8,27 +8,38 @@ cimport numpy
 numpy.import_array()
 
 # conversion table between ISMRMRD and Numpy dtypes
-cdef dict ismrmrd_to_numpy_dtypes_dict = {
+cdef dict ismrmrd_to_numpy_typenums_dict = {
     cismrmrd.ISMRMRD_USHORT:    numpy.NPY_UINT16,
     cismrmrd.ISMRMRD_SHORT:     numpy.NPY_INT16,
     cismrmrd.ISMRMRD_UINT:      numpy.NPY_UINT32,
     cismrmrd.ISMRMRD_INT:       numpy.NPY_INT32,
-    cismrmrd.ISMRMRD_FLOAT:     numpy.NPY_FLOAT64,
-    cismrmrd.ISMRMRD_DOUBLE:    numpy.NPY_FLOAT128,
+    cismrmrd.ISMRMRD_FLOAT:     numpy.NPY_FLOAT32,
+    cismrmrd.ISMRMRD_DOUBLE:    numpy.NPY_FLOAT64,
     cismrmrd.ISMRMRD_CXFLOAT:   numpy.NPY_COMPLEX64,
     cismrmrd.ISMRMRD_CXDOUBLE:  numpy.NPY_COMPLEX128,
 }
 
-# expose ismrmrd dtypes to Python namespace for NDArray object
-# TODO: handle implicit conversion from numpy-dtypes directly
-ISMRMRD_USHORT      = cismrmrd.ISMRMRD_USHORT
-ISMRMRD_SHORT       = cismrmrd.ISMRMRD_SHORT
-ISMRMRD_UINT        = cismrmrd.ISMRMRD_UINT
-ISMRMRD_INT         = cismrmrd.ISMRMRD_INT
-ISMRMRD_FLOAT       = cismrmrd.ISMRMRD_FLOAT
-ISMRMRD_DOUBLE      = cismrmrd.ISMRMRD_DOUBLE
-ISMRMRD_CXFLOAT     = cismrmrd.ISMRMRD_CXFLOAT
-ISMRMRD_CXDOUBLE    = cismrmrd.ISMRMRD_CXDOUBLE
+cdef dict numpy_dtype_to_ismrmrd_typenum = {
+    numpy.uint16:       cismrmrd.ISMRMRD_USHORT,
+    numpy.int16:        cismrmrd.ISMRMRD_SHORT,
+    numpy.uint32:       cismrmrd.ISMRMRD_UINT,
+    numpy.int32:        cismrmrd.ISMRMRD_INT,
+    numpy.float32:      cismrmrd.ISMRMRD_FLOAT,
+    numpy.float64:      cismrmrd.ISMRMRD_DOUBLE,
+    numpy.complex64:    cismrmrd.ISMRMRD_CXFLOAT,
+    numpy.complex128:   cismrmrd.ISMRMRD_CXDOUBLE,
+}
+
+cdef dict ismrmrd_typenum_to_numpy_dtype = {
+    cismrmrd.ISMRMRD_USHORT:    numpy.uint16,
+    cismrmrd.ISMRMRD_SHORT:     numpy.int16,
+    cismrmrd.ISMRMRD_UINT:      numpy.uint32,
+    cismrmrd.ISMRMRD_INT:       numpy.int32,
+    cismrmrd.ISMRMRD_FLOAT:     numpy.float32,
+    cismrmrd.ISMRMRD_DOUBLE:    numpy.float64,
+    cismrmrd.ISMRMRD_CXFLOAT:   numpy.complex64,
+    cismrmrd.ISMRMRD_CXDOUBLE:  numpy.complex128,
+}
 
 # expose acquisition flags to Python namespace
 # TODO: encapsulate that to a class and let set_flag / clear_flag be the 
@@ -582,7 +593,7 @@ cdef class Image:
             cdef numpy.npy_intp shape_data[3]
             for idim in range(3):
                 shape_data[idim] = self.head.matrix_size[idim]            
-            cdef int typenum = ismrmrd_to_numpy_dtypes_dict[self.head.data_type]
+            cdef int typenum = ismrmrd_to_numpy_typenums_dict[self.head.data_type]
             return numpy.PyArray_SimpleNewFromData(3, shape_data,
                     typenum, <void *>(self.thisptr.data))
 
@@ -618,9 +629,11 @@ cdef class NDArray:
         def __get__(self): return self.thisptr.version 
         
     property dtype:
-        def __get__(self): return self.thisptr.data_type
+        def __get__(self):
+            return numpy.dtype(ismrmrd_typenum_to_numpy_dtype[self.thisptr.data_type])
         def __set__(self, val):
-            self.thisptr.data_type = val
+            numpy_dtype = numpy.dtype(val)
+            self.thisptr.data_type = numpy_dtype_to_ismrmrd_typenum[numpy_dtype.type]
             errno = cismrmrd.ismrmrd_make_consistent_ndarray(self.thisptr)
             if errno != cismrmrd.ISMRMRD_NOERROR:
                 raise RuntimeError(build_exception_string())
@@ -649,7 +662,7 @@ cdef class NDArray:
             else:
                 for idim in range(self.ndim):
                     shape_data[idim] = self.shape[idim]
-                typenum = ismrmrd_to_numpy_dtypes_dict[self.thisptr.data_type]
+                typenum = ismrmrd_to_numpy_typenums_dict[self.thisptr.data_type]
                 return numpy.PyArray_SimpleNewFromData(self.ndim, shape_data,
                         typenum, <void *>(self.thisptr.data))   
 
