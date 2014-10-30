@@ -42,45 +42,46 @@ cdef dict ismrmrd_typenum_to_numpy_dtype = {
 }
 
 # expose acquisition flags to Python namespace
-# TODO: encapsulate that to a class and let set_flag / clear_flag be the
-# only interface
-ACQ_FIRST_IN_ENCODE_STEP1 = cismrmrd.ISMRMRD_ACQ_FIRST_IN_ENCODE_STEP1
-ACQ_LAST_IN_ENCODE_STEP1 = cismrmrd.ISMRMRD_ACQ_LAST_IN_ENCODE_STEP1
-ACQ_FIRST_IN_ENCODE_STEP2 = cismrmrd.ISMRMRD_ACQ_FIRST_IN_ENCODE_STEP2
-ACQ_LAST_IN_ENCODE_STEP2 = cismrmrd.ISMRMRD_ACQ_LAST_IN_ENCODE_STEP2
-ACQ_FIRST_IN_AVERAGE = cismrmrd.ISMRMRD_ACQ_FIRST_IN_AVERAGE
-ACQ_LAST_IN_AVERAGE = cismrmrd.ISMRMRD_ACQ_LAST_IN_AVERAGE
-ACQ_FIRST_IN_SLICE = cismrmrd.ISMRMRD_ACQ_FIRST_IN_SLICE
-ACQ_LAST_IN_SLICE = cismrmrd.ISMRMRD_ACQ_LAST_IN_SLICE
-ACQ_FIRST_IN_CONTRAST = cismrmrd.ISMRMRD_ACQ_FIRST_IN_CONTRAST
-ACQ_LAST_IN_CONTRAST = cismrmrd.ISMRMRD_ACQ_LAST_IN_CONTRAST
-ACQ_FIRST_IN_PHASE = cismrmrd.ISMRMRD_ACQ_FIRST_IN_PHASE
-ACQ_LAST_IN_PHASE = cismrmrd.ISMRMRD_ACQ_LAST_IN_PHASE
-ACQ_FIRST_IN_REPETITION = cismrmrd.ISMRMRD_ACQ_FIRST_IN_REPETITION
-ACQ_LAST_IN_REPETITION = cismrmrd.ISMRMRD_ACQ_LAST_IN_REPETITION
-ACQ_FIRST_IN_SET = cismrmrd.ISMRMRD_ACQ_FIRST_IN_SET
-ACQ_LAST_IN_SET = cismrmrd.ISMRMRD_ACQ_LAST_IN_SET
-ACQ_FIRST_IN_SEGMENT = cismrmrd.ISMRMRD_ACQ_FIRST_IN_SEGMENT
-ACQ_LAST_IN_SEGMENT = cismrmrd.ISMRMRD_ACQ_LAST_IN_SEGMENT
-ACQ_IS_NOISE_MEASUREMENT = cismrmrd.ISMRMRD_ACQ_IS_NOISE_MEASUREMENT
-ACQ_IS_PARALLEL_CALIBRATION = cismrmrd.ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION
-ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING = cismrmrd.ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING
-ACQ_IS_REVERSE = cismrmrd.ISMRMRD_ACQ_IS_REVERSE
-ACQ_IS_NAVIGATION_DATA = cismrmrd.ISMRMRD_ACQ_IS_NAVIGATION_DATA
-ACQ_IS_PHASECORR_DATA = cismrmrd.ISMRMRD_ACQ_IS_PHASECORR_DATA
-ACQ_LAST_IN_MEASUREMENT = cismrmrd.ISMRMRD_ACQ_LAST_IN_MEASUREMENT
-ACQ_IS_HPFEEDBACK_DATA = cismrmrd.ISMRMRD_ACQ_IS_HPFEEDBACK_DATA
-ACQ_IS_DUMMYSCAN_DATA = cismrmrd.ISMRMRD_ACQ_IS_DUMMYSCAN_DATA
-ACQ_IS_RTFEEDBACK_DATA = cismrmrd.ISMRMRD_ACQ_IS_RTFEEDBACK_DATA
-ACQ_IS_SURFACECOILCORRECTIONSCAN_DATA = cismrmrd.ISMRMRD_ACQ_IS_SURFACECOILCORRECTIONSCAN_DATA
-ACQ_USER1 = cismrmrd.ISMRMRD_ACQ_USER1
-ACQ_USER2 = cismrmrd.ISMRMRD_ACQ_USER2
-ACQ_USER3 = cismrmrd.ISMRMRD_ACQ_USER3
-ACQ_USER4 = cismrmrd.ISMRMRD_ACQ_USER4
-ACQ_USER5 = cismrmrd.ISMRMRD_ACQ_USER5
-ACQ_USER6 = cismrmrd.ISMRMRD_ACQ_USER6
-ACQ_USER7 = cismrmrd.ISMRMRD_ACQ_USER7
-ACQ_USER8 = cismrmrd.ISMRMRD_ACQ_USER8
+cdef dict acquisition_header_flags_dict = {
+    'FIRST_IN_ENCODE_STEP1' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_ENCODE_STEP1,
+    'LAST_IN_ENCODE_STEP1' : cismrmrd.ISMRMRD_ACQ_LAST_IN_ENCODE_STEP1,
+    'FIRST_IN_ENCODE_STEP2' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_ENCODE_STEP2,
+    'LAST_IN_ENCODE_STEP2' : cismrmrd.ISMRMRD_ACQ_LAST_IN_ENCODE_STEP2,
+    'FIRST_IN_AVERAGE' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_AVERAGE,
+    'LAST_IN_AVERAGE' : cismrmrd.ISMRMRD_ACQ_LAST_IN_AVERAGE,
+    'FIRST_IN_SLICE' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_SLICE,
+    'LAST_IN_SLICE' : cismrmrd.ISMRMRD_ACQ_LAST_IN_SLICE,
+    'FIRST_IN_CONTRAST' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_CONTRAST,
+    'LAST_IN_CONTRAST' : cismrmrd.ISMRMRD_ACQ_LAST_IN_CONTRAST,
+    'FIRST_IN_PHASE' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_PHASE,
+    'LAST_IN_PHASE' : cismrmrd.ISMRMRD_ACQ_LAST_IN_PHASE,
+    'FIRST_IN_REPETITION' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_REPETITION,
+    'LAST_IN_REPETITION' : cismrmrd.ISMRMRD_ACQ_LAST_IN_REPETITION,
+    'FIRST_IN_SET' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_SET,
+    'LAST_IN_SET' : cismrmrd.ISMRMRD_ACQ_LAST_IN_SET,
+    'FIRST_IN_SEGMENT' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_SEGMENT,
+    'LAST_IN_SEGMENT' : cismrmrd.ISMRMRD_ACQ_LAST_IN_SEGMENT,
+    'IS_NOISE_MEASUREMENT' : cismrmrd.ISMRMRD_ACQ_IS_NOISE_MEASUREMENT,
+    'IS_PARALLEL_CALIBRATION' : cismrmrd.ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION,
+    'IS_PARALLEL_CALIBRATION_AND_IMAGING' : cismrmrd.ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING,
+    'IS_REVERSE' : cismrmrd.ISMRMRD_ACQ_IS_REVERSE,
+    'IS_NAVIGATION_DATA' : cismrmrd.ISMRMRD_ACQ_IS_NAVIGATION_DATA,
+    'IS_PHASECORR_DATA' : cismrmrd.ISMRMRD_ACQ_IS_PHASECORR_DATA,
+    'LAST_IN_MEASUREMENT' : cismrmrd.ISMRMRD_ACQ_LAST_IN_MEASUREMENT,
+    'IS_HPFEEDBACK_DATA' : cismrmrd.ISMRMRD_ACQ_IS_HPFEEDBACK_DATA,
+    'IS_DUMMYSCAN_DATA' : cismrmrd.ISMRMRD_ACQ_IS_DUMMYSCAN_DATA,
+    'IS_RTFEEDBACK_DATA' : cismrmrd.ISMRMRD_ACQ_IS_RTFEEDBACK_DATA,
+    'IS_SURFACECOILCORRECTIONSCAN_DATA' : cismrmrd.ISMRMRD_ACQ_IS_SURFACECOILCORRECTIONSCAN_DATA,
+    'USER1' : cismrmrd.ISMRMRD_ACQ_USER1,
+    'USER2' : cismrmrd.ISMRMRD_ACQ_USER2,
+    'USER3' : cismrmrd.ISMRMRD_ACQ_USER3,
+    'USER4' : cismrmrd.ISMRMRD_ACQ_USER4,
+    'USER5' : cismrmrd.ISMRMRD_ACQ_USER5,
+    'USER6' : cismrmrd.ISMRMRD_ACQ_USER6,
+    'USER7' : cismrmrd.ISMRMRD_ACQ_USER7,
+    'USER8' : cismrmrd.ISMRMRD_ACQ_USER8,
+}
+
 
 
 cdef bytes build_exception_string():
@@ -329,15 +330,18 @@ cdef class AcquisitionHeader:
                 self.thisptr.user_float[i] = val[i]
 
     def is_flag_set(self, flag):
-        return cismrmrd.ismrmrd_is_flag_set(self.thisptr.flags, flag)
+        return cismrmrd.ismrmrd_is_flag_set(self.thisptr.flags,
+                                            acquisition_header_flags_dict[flag])
 
     def set_flag(self, flag):
         if not self.is_flag_set(flag):
-            cismrmrd.ismrmrd_set_flag(&self.thisptr.flags, flag)
+            cismrmrd.ismrmrd_set_flag(&self.thisptr.flags,
+                                      acquisition_header_flags_dict[flag])
 
     def clear_flag(self, flag):
         if self.is_flag_set(flag):
-            cismrmrd.ismrmrd_clear_flag(&self.thisptr.flags, flag)
+            cismrmrd.ismrmrd_clear_flag(&self.thisptr.flags,
+                                        acquisition_header_flags_dict[flag])
 
     def clear_all_flags(self):
         cismrmrd.ismrmrd_clear_all_flags(&self.thisptr.flags)
