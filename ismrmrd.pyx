@@ -42,7 +42,7 @@ cdef dict ismrmrd_typenum_to_numpy_dtype = {
 }
 
 # expose acquisition flags to Python namespace
-# TODO: encapsulate that to a class and let set_flag / clear_flag be the 
+# TODO: encapsulate that to a class and let set_flag / clear_flag be the
 # only interface
 ACQ_FIRST_IN_ENCODE_STEP1 = cismrmrd.ISMRMRD_ACQ_FIRST_IN_ENCODE_STEP1
 ACQ_LAST_IN_ENCODE_STEP1 = cismrmrd.ISMRMRD_ACQ_LAST_IN_ENCODE_STEP1
@@ -328,6 +328,20 @@ cdef class AcquisitionHeader:
             for i in range(cismrmrd.ISMRMRD_USER_FLOATS):
                 self.thisptr.user_float[i] = val[i]
 
+    def is_flag_set(self, flag):
+        return cismrmrd.ismrmrd_is_flag_set(self.thisptr.flags, flag)
+
+    def set_flag(self, flag):
+        if not self.is_flag_set(flag):
+            cismrmrd.ismrmrd_set_flag(&self.thisptr.flags, flag)
+
+    def clear_flag(self, flag):
+        if self.is_flag_set(flag):
+            cismrmrd.ismrmrd_clear_flag(&self.thisptr.flags, flag)
+
+    def clear_all_flags(self):
+        cismrmrd.ismrmrd_clear_all_flags(&self.thisptr.flags)
+
 
 cdef class Acquisition:
 
@@ -339,7 +353,7 @@ cdef class Acquisition:
         if errno != cismrmrd.ISMRMRD_NOERROR:
             raise RuntimeError(build_exception_string())
         if head is not None:
-            self.head = head 
+            self.head = head
 
     def __dealloc__(self):
         errno = cismrmrd.ismrmrd_cleanup_acquisition(self.thisptr)
@@ -351,7 +365,7 @@ cdef class Acquisition:
         cdef Acquisition acopy = Acquisition()
         errno = cismrmrd.ismrmrd_copy_acquisition(acopy.thisptr, self.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError(build_exception_string())        
+            raise RuntimeError(build_exception_string())
         return acopy
 
     property head:
@@ -588,15 +602,15 @@ cdef class Image:
             errno = cismrmrd.ismrmrd_make_consistent_image(self.thisptr)
             if errno != cismrmrd.ISMRMRD_NOERROR:
                 raise RuntimeError(build_exception_string())
-        
+
     property attribute_string:
         def __get__(self): return self.thisptr.attribute_string
-        
+
     property data:
         def __get__(self):
             cdef numpy.npy_intp shape_data[3]
             for idim in range(3):
-                shape_data[idim] = self.head.matrix_size[idim]            
+                shape_data[idim] = self.head.matrix_size[idim]
             cdef int typenum = ismrmrd_to_numpy_typenums_dict[self.head.data_type]
             return numpy.PyArray_SimpleNewFromData(3, shape_data,
                     typenum, <void *>(self.thisptr.data))
@@ -605,7 +619,7 @@ cdef class Image:
 
 
 cdef class NDArray:
-    
+
     cdef cismrmrd.ISMRMRD_NDArray *thisptr
 
     def __cinit__(self, shape=None, dtype=None):
@@ -633,8 +647,8 @@ cdef class NDArray:
         return acopy
 
     property version:
-        def __get__(self): return self.thisptr.version 
-        
+        def __get__(self): return self.thisptr.version
+
     property dtype:
         def __get__(self):
             return numpy.dtype(ismrmrd_typenum_to_numpy_dtype[self.thisptr.data_type])
@@ -648,7 +662,7 @@ cdef class NDArray:
     property ndim:
         def __get__(self): return self.thisptr.ndim
         def __set__(self, val): self.thisptr.ndim = val
-        
+
     property shape:
         def __get__(self):
             return [self.thisptr.dims[i] for i in range(self.ndim)]
@@ -694,7 +708,7 @@ cdef class Dataset:
             if errno != cismrmrd.ISMRMRD_NOERROR:
                 raise RuntimeError(build_exception_string())
             self.is_open = True
-        
+
     def close(self):
         if self.is_open:
             errno = cismrmrd.ismrmrd_close_dataset(self.thisptr)
@@ -753,7 +767,7 @@ cdef class Dataset:
     def append_array(self, varname, NDArray arr):
         errno = cismrmrd.ismrmrd_append_array(self.thisptr, varname, arr.thisptr)
         if errno != cismrmrd.ISMRMRD_NOERROR:
-            raise RuntimeError(build_exception_string().decode('UTF-8'))        
+            raise RuntimeError(build_exception_string().decode('UTF-8'))
 
     def read_array(self, varname, index):
         cdef NDArray arr = NDArray()
