@@ -42,7 +42,7 @@ cdef dict ismrmrd_typenum_to_numpy_dtype = {
 }
 
 # expose acquisition flags to Python namespace
-cdef dict acquisition_header_flags_dict = {
+cdef dict acquisition_flags_dict = {
     'FIRST_IN_ENCODE_STEP1' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_ENCODE_STEP1,
     'LAST_IN_ENCODE_STEP1' : cismrmrd.ISMRMRD_ACQ_LAST_IN_ENCODE_STEP1,
     'FIRST_IN_ENCODE_STEP2' : cismrmrd.ISMRMRD_ACQ_FIRST_IN_ENCODE_STEP2,
@@ -81,7 +81,31 @@ cdef dict acquisition_header_flags_dict = {
     'USER7' : cismrmrd.ISMRMRD_ACQ_USER7,
     'USER8' : cismrmrd.ISMRMRD_ACQ_USER8,
 }
-acquisition_header_flags = tuple(acquisition_header_flags_dict.keys())
+acquisition_flags = tuple(acquisition_flags_dict.keys())
+
+# expose image flags to Python namespace
+cdef dict image_flags_dict = {
+    'IS_NAVIGATION_DATA' : cismrmrd.ISMRMRD_IMAGE_IS_NAVIGATION_DATA,
+    'USER1' : cismrmrd.ISMRMRD_IMAGE_USER1,
+    'USER2' : cismrmrd.ISMRMRD_IMAGE_USER2,
+    'USER3' : cismrmrd.ISMRMRD_IMAGE_USER3,
+    'USER4' : cismrmrd.ISMRMRD_IMAGE_USER4,
+    'USER5' : cismrmrd.ISMRMRD_IMAGE_USER5,
+    'USER6' : cismrmrd.ISMRMRD_IMAGE_USER6,
+    'USER7' : cismrmrd.ISMRMRD_IMAGE_USER7,
+    'USER8' : cismrmrd.ISMRMRD_IMAGE_USER8,
+}
+image_flags = tuple(image_flags_dict.keys())
+
+# expose image types to Python namespace
+cdef dict image_types_dict = {
+    'MAGNITUDE' : cismrmrd.ISMRMRD_IMTYPE_MAGNITUDE,
+    'PHASE'     : cismrmrd.ISMRMRD_IMTYPE_PHASE,
+    'REAL'      : cismrmrd.ISMRMRD_IMTYPE_REAL,
+    'IMAG'      : cismrmrd.ISMRMRD_IMTYPE_IMAG,
+    'COMPLEX'   : cismrmrd.ISMRMRD_IMTYPE_COMPLEX,
+}
+image_types = tuple(image_types_dict.keys())
 
 
 cdef bytes build_exception_string():
@@ -331,17 +355,17 @@ cdef class AcquisitionHeader:
 
     def is_flag_set(self, flag):
         return cismrmrd.ismrmrd_is_flag_set(self.thisptr.flags,
-                                            acquisition_header_flags_dict[flag])
+                                            acquisition_flags_dict[flag])
 
     def set_flag(self, flag):
         if not self.is_flag_set(flag):
             cismrmrd.ismrmrd_set_flag(&self.thisptr.flags,
-                                      acquisition_header_flags_dict[flag])
+                                      acquisition_flags_dict[flag])
 
     def clear_flag(self, flag):
         if self.is_flag_set(flag):
             cismrmrd.ismrmrd_clear_flag(&self.thisptr.flags,
-                                        acquisition_header_flags_dict[flag])
+                                        acquisition_flags_dict[flag])
 
     def clear_all_flags(self):
         cismrmrd.ismrmrd_clear_all_flags(&self.thisptr.flags)
@@ -544,7 +568,7 @@ cdef class ImageHeader:
 
     property image_type:
         def __get__(self): return self.thisptr.image_type
-        def __set__(self, val): self.thisptr.image_type = val
+        def __set__(self, val): self.thisptr.image_type = image_types_dict[val]
 
     property image_index:
         def __get__(self): return self.thisptr.image_index
@@ -569,6 +593,24 @@ cdef class ImageHeader:
         def __set__(self, val):
             for i in range(cismrmrd.ISMRMRD_USER_FLOATS):
                 self.thisptr.user_int[i] = val[i]
+
+    def is_flag_set(self, flag):
+        return cismrmrd.ismrmrd_is_flag_set(self.thisptr.flags,
+                                            image_flags_dict[flag])
+
+    def set_flag(self, flag):
+        if not self.is_flag_set(flag):
+            cismrmrd.ismrmrd_set_flag(&self.thisptr.flags,
+                                      image_flags_dict[flag])
+
+    def clear_flag(self, flag):
+        if self.is_flag_set(flag):
+            cismrmrd.ismrmrd_clear_flag(&self.thisptr.flags,
+                                        image_flags_dict[flag])
+
+    def clear_all_flags(self):
+        cismrmrd.ismrmrd_clear_all_flags(&self.thisptr.flags)
+
 
 
 cdef class Image:
