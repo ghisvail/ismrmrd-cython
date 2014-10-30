@@ -461,8 +461,11 @@ cdef class ImageHeader:
         def __set__(self, val): self.thisptr.version = val
 
     property data_type:
-        def __get__(self): return self.thisptr.data_type
-        def __set__(self, val): self.thisptr.data_type = val
+        def __get__(self):
+            return ismrmrd_typenum_to_numpy_dtype[self.thisptr.data_type]
+        def __set__(self, val):
+            dtype = numpy.dtype(val).type
+            self.thisptr.data_type = numpy_dtype_to_ismrmrd_typenum[dtype]
 
     property flags:
         def __get__(self): return self.thisptr.flags
