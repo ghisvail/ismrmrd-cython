@@ -7,7 +7,7 @@ import numpy
 ismrmrd_home = os.environ['ISMRMRD_HOME']
 
 ext = Extension(
-    "ismrmrd",
+    "pyismrmrd",
     ["cismrmrd.pxd", "ismrmrd.pyx"],
     include_dirs=[os.path.join(ismrmrd_home, 'include'),
                   numpy.get_include()],
