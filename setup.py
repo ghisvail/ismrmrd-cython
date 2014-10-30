@@ -17,7 +17,7 @@ ext = Extension(
 )
 
 setup(
-    name="ismrmrd",
+    name="pyismrmrd",
     ext_modules=[ext],
     cmdclass={'build_ext':build_ext}
 )
