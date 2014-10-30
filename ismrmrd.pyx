@@ -81,7 +81,7 @@ cdef dict acquisition_header_flags_dict = {
     'USER7' : cismrmrd.ISMRMRD_ACQ_USER7,
     'USER8' : cismrmrd.ISMRMRD_ACQ_USER8,
 }
-
+acquisition_header_flags = tuple(acquisition_header_flags_dict.keys())
 
 
 cdef bytes build_exception_string():
